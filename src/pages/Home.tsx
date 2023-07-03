@@ -10,18 +10,25 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { Box } from "@mui/material";
+import axios from "axios";
+
+export interface UserInfo {
+  name: string;
+  coordinates: string;
+  color: string;
+}
 
 const Home = () => {
   const [data, setData] = useState([]);
-  const [color, setColor] = useState("#ffffff");
   const [sendData, setsendData] = useState(false);
-  const [name, setName] = useState("");
   const [isPickerVisible, setIsPickerVisible] = useState(false);
+
+  const url = "http://localhost:8000/";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:8000/");
+        const response = await fetch(url);
         const jsonData = await response.json();
         setData(jsonData);
       } catch (error) {
@@ -32,9 +39,38 @@ const Home = () => {
     fetchData();
   }, [sendData]);
 
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    name: "",
+    coordinates: "",
+    color: "",
+  });
+
+  useEffect(() => {
+    const updateColor = async () => {
+      if (sendData === true) {
+        try {
+          await axios.post(url, {
+            coordinates: userInfo.coordinates,
+            user: userInfo.name,
+            color: userInfo.color,
+          });
+          setsendData(false);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
+
+    updateColor();
+  }, [sendData]);
+
   const handleChangeComplete = (color: any) => {
     const rgbaString = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`;
-    setColor(rgbaString);
+
+    setUserInfo((prevState) => ({
+      ...prevState,
+      color: rgbaString,
+    }));
   };
 
   const handleSendData = () => {
@@ -48,13 +84,8 @@ const Home = () => {
       {data && (
         <PixelCanva
           data={data}
-          setColor={setColor}
-          color={color}
-          sendData={sendData}
-          setsendData={setsendData}
+          setUserInfo={setUserInfo}
           setIsPickerVisible={setIsPickerVisible}
-          setName={setName}
-          name={name}
         />
       )}
       <Dialog open={isPickerVisible} sx={{ alignItems: "center" }}>
@@ -68,15 +99,23 @@ const Home = () => {
             autoFocus
             margin="dense"
             id="name"
-            value={name}
+            value={userInfo.name}
             type="email"
             fullWidth
             variant="standard"
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) =>
+              setUserInfo((prevState) => ({
+                ...prevState,
+                name: e.target.value,
+              }))
+            }
           />
         </DialogContent>
         <Box sx={{ alignSelf: "center", mb: 2 }}>
-          <SketchPicker color={color} onChangeComplete={handleChangeComplete} />
+          <SketchPicker
+            color={userInfo.color}
+            onChangeComplete={handleChangeComplete}
+          />
         </Box>
         <DialogActions>
           <Button onClick={() => setIsPickerVisible(false)}>Annuler</Button>
