@@ -1,16 +1,22 @@
 import { Box, Tooltip } from "@mui/material";
-import { UserInfo } from "../pages/Home";
+import { User } from "../pages/Home";
 import { Dispatch, SetStateAction } from "react";
 
 interface ColorData {
   data: any;
-  setIsPickerVisible: Dispatch<SetStateAction<boolean>>;
-  setUserInfo: Dispatch<SetStateAction<UserInfo>>;
+  setIsModaleOpen: Dispatch<SetStateAction<boolean>>;
+  setUserInfo: Dispatch<SetStateAction<User>>;
+  userInfo: User;
 }
 
-const PixelCanva = ({ data, setIsPickerVisible, setUserInfo }: ColorData) => {
+const PixelCanva = ({
+  data,
+  setIsModaleOpen,
+  setUserInfo,
+  userInfo,
+}: ColorData) => {
   const handleClick = (key: string, data: { color: string; user: string }) => {
-    setIsPickerVisible(true);
+    setIsModaleOpen(true);
 
     setUserInfo({
       color: data.color,
@@ -25,19 +31,25 @@ const PixelCanva = ({ data, setIsPickerVisible, setUserInfo }: ColorData) => {
         Array.from({ length: 50 }, (_, col) => {
           const i = `${row + 1}-${col + 1}`;
           const currentUser = data[i];
-          const userExist = currentUser?.user;
+          const userName = currentUser?.user;
+          const userColor = currentUser?.color;
 
           return (
-            <Tooltip title={userExist || ""} key={i}>
+            <Tooltip
+              key={i}
+              title={
+                userName ? `${userName} - ${userColor} - (${row},${col})` : ""
+              }
+            >
               <Box
-                onClick={() => userExist && handleClick(i, currentUser)}
+                onClick={() => userName && handleClick(i, currentUser)}
                 sx={{
                   border: "1px solid black",
                   width: "100%",
                   height: "100%",
                   marginBottom: 2,
                   background: currentUser?.color || "white",
-                  cursor: userExist ? "pointer" : "inherit",
+                  cursor: userName ? "pointer" : "inherit",
                   "&:hover": {
                     background: "darken",
                   },

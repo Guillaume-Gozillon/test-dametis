@@ -12,7 +12,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import { Box } from "@mui/material";
 import axios from "axios";
 
-export interface UserInfo {
+export interface User {
   name: string;
   coordinates: string;
   color: string;
@@ -20,8 +20,13 @@ export interface UserInfo {
 
 const Home = () => {
   const [data, setData] = useState([]);
-  const [sendData, setsendData] = useState(false);
-  const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [sendData, setSendData] = useState(false);
+  const [isModalOpen, setIsModaleOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<User>({
+    name: "",
+    coordinates: "",
+    color: "",
+  });
 
   const url = "http://localhost:8000/";
 
@@ -39,12 +44,6 @@ const Home = () => {
     fetchData();
   }, [sendData]);
 
-  const [userInfo, setUserInfo] = useState<UserInfo>({
-    name: "",
-    coordinates: "",
-    color: "",
-  });
-
   useEffect(() => {
     const updateColor = async () => {
       if (sendData === true) {
@@ -54,7 +53,7 @@ const Home = () => {
             user: userInfo.name,
             color: userInfo.color,
           });
-          setsendData(false);
+          setSendData(false);
         } catch (error) {
           console.error(error);
         }
@@ -64,7 +63,7 @@ const Home = () => {
     updateColor();
   }, [sendData]);
 
-  const handleChangeComplete = (color: any) => {
+  const handleChangeColor = (color: any) => {
     const rgbaString = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`;
 
     setUserInfo((prevState) => ({
@@ -74,8 +73,8 @@ const Home = () => {
   };
 
   const handleSendData = () => {
-    setsendData(true);
-    setIsPickerVisible(false);
+    setSendData(true);
+    setIsModaleOpen(false);
   };
 
   return (
@@ -85,10 +84,11 @@ const Home = () => {
         <PixelCanva
           data={data}
           setUserInfo={setUserInfo}
-          setIsPickerVisible={setIsPickerVisible}
+          setIsModaleOpen={setIsModaleOpen}
+          userInfo={userInfo}
         />
       )}
-      <Dialog open={isPickerVisible} sx={{ alignItems: "center" }}>
+      <Dialog open={isModalOpen} sx={{ alignItems: "center" }}>
         <DialogTitle>Changer les informations</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -96,7 +96,6 @@ const Home = () => {
             vitae dui varius odio dignissim pretium non eget nisi.
           </DialogContentText>
           <TextField
-            autoFocus
             margin="dense"
             id="name"
             value={userInfo.name}
@@ -114,11 +113,11 @@ const Home = () => {
         <Box sx={{ alignSelf: "center", mb: 2 }}>
           <SketchPicker
             color={userInfo.color}
-            onChangeComplete={handleChangeComplete}
+            onChangeComplete={handleChangeColor}
           />
         </Box>
         <DialogActions>
-          <Button onClick={() => setIsPickerVisible(false)}>Annuler</Button>
+          <Button onClick={() => setIsModaleOpen(false)}>Annuler</Button>
           <Button variant="contained" onClick={handleSendData}>
             Modifier le champs
           </Button>
